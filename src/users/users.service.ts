@@ -52,7 +52,6 @@ export class UsersService {
       if (error instanceof HttpException) {
         throw error; // Reenviá las excepciones conocidas
       }
-      // Para errores internos no previstos (problemas de DB, por ejemplo)
       throw new BadRequestException('Error interno al crear usuario');
     }
   }
@@ -148,7 +147,7 @@ export class UsersService {
 
       const resetToken = uuidv4();
       user.resetToken = resetToken;
-      user.resetTokenExpires = new Date(Date.now() + 60 * 1000); // 1 min
+      user.resetTokenExpires = new Date(Date.now() + 5 * 60 * 1000);  // 5 min
 
       await user.save();
 

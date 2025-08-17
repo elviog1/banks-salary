@@ -11,6 +11,7 @@ import {
   Patch,
   Post,
   Query,
+  Res,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDTO } from './dto/create-user.dto';
@@ -18,6 +19,7 @@ import { User } from './schema/user.schema';
 import { UpdateUserDTO } from './dto/update-user.dto';
 import { EmailService } from 'src/email/email.service';
 import { ResetPasswordDTO } from './dto/reset-password.dto';
+import { Response } from 'express';
 
 @Controller('users')
 export class UsersController {
@@ -60,13 +62,7 @@ export class UsersController {
   async remove(@Param('id') id: string) {
     await this.usersService.remove(id);
   }
-
-  /* @Patch('verify/:email')
-  async verifyUser(@Param('email') email: string) {
-    const user = await this.usersService.userVerified(email);
-    return user;
-  } */
-
+  
   @Patch(':id')
   async updateUser(
     @Param('id') id: string,
@@ -77,14 +73,21 @@ export class UsersController {
   }
 
   @Get('verify/:token')
-  async verify(@Param('token') token: string) {
+  async verify(@Param('token') token: string, @Res() res: Response) {
     const user = await this.usersService.verifyUserByToken(token);
-    return { message: 'Cuenta verificada con éxito. Ya podés iniciar sesión.' };
+
+    if (!user) {
+      return res.status(400).send('Token inválido o ya usado');
+    }
+
+    // ✅ Redireccionar al login del frontend
+    return res.redirect('http://localhost:3000/login');
   }
 
   @Post('request-password-reset')
   async requestPasswordReset(@Body('email') email: string) {
-    return this.usersService.requestPasswordReset(email);
+    await this.usersService.requestPasswordReset(email);
+    return { message: 'Se ha enviado el correo de recuperación' };
   }
 
   @Post('reset-password/:token')
@@ -92,6 +95,7 @@ export class UsersController {
     @Param('token') token: string,
     @Body() newPassword: ResetPasswordDTO,
   ) {
-    return this.usersService.resetPassword(token, newPassword);
+    await this.usersService.resetPassword(token, newPassword);
+    return { message: 'Tu contraseña ha sido restablecida con éxito.' };
   }
 }
