@@ -42,7 +42,7 @@ export class TransactionsService {
   try {
     const transactions = await this.transactionModel
       .find({ user: userId })
-      .populate('card') 
+      //.populate('card') 
       //.sort({ date: -1 })
       .exec();
       return transactions
